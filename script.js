@@ -151,7 +151,24 @@ function setupDragAndDrop(container, inputId, previewId, statusId, uploadKey) {
     const dt = e.dataTransfer;
     let url = '';
 
-    // Try to get URL from different sources
+    // First, check if files were dropped
+    if (dt.files && dt.files.length > 0) {
+      const file = dt.files[0];
+      if (file && file.type.startsWith('image/')) {
+        // Simulate file input change
+        const input = document.getElementById(inputId);
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        input.files = dataTransfer.files;
+
+        // Trigger the change event
+        const event = new Event('change', { bubbles: true });
+        input.dispatchEvent(event);
+      }
+      return;
+    }
+
+    // Try to get URL from different sources (for backward compatibility)
     if (dt.getData('text/uri-list')) {
       url = dt.getData('text/uri-list').split('\n')[0];
     } else if (dt.getData('text/html')) {
@@ -362,8 +379,29 @@ function closeDevelopers() {
   document.getElementById("developersBox").style.display = "none";
 }
 
+
 function showBackToSetupConfirmation() {
+  // Update current game stats in the dialog
+  document.getElementById('currentScores').textContent = 
+    `${gameSetup.p1Name}: ${p1Score} | ${gameSetup.p2Name}: ${p2Score}`;
+  document.getElementById('currentRound').textContent = 
+    `Round ${tossCount}/5`;
+  
   document.getElementById("backToSetupBox").style.display = "flex";
+}
+
+// Add new function for confirmed action
+function confirmBackToSetup() {
+  closeBackToSetupConfirmation();
+  
+  // Hide gameplay page
+  document.getElementById("gameplay-page").style.display = "none";
+  
+  // Show setup page
+  document.getElementById("setup-page").style.display = "block";
+  
+  // Reset game progress
+  resetGameState();
 }
 
 
